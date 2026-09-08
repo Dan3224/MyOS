@@ -14,16 +14,19 @@ void console_init(void) {
     cursor = 0;
 }
 
+void console_write_char(char character) {
+    if (character == '\n') {
+        cursor = (cursor / VGA_WIDTH + 1) * VGA_WIDTH;
+    } else {
+        vga_buffer[cursor++] = ((unsigned short)VGA_COLOR << 8) | (unsigned char)character;
+    }
+    if (cursor >= VGA_WIDTH * VGA_HEIGHT) {
+        cursor = 0;
+    }
+}
+
 void console_write(const char *text) {
     while (*text) {
-        if (*text == '\n') {
-            cursor = (cursor / VGA_WIDTH + 1) * VGA_WIDTH;
-        } else {
-            vga_buffer[cursor++] = ((unsigned short)VGA_COLOR << 8) | (unsigned char)*text;
-        }
-        if (cursor >= VGA_WIDTH * VGA_HEIGHT) {
-            cursor = 0;
-        }
-        text++;
+        console_write_char(*text++);
     }
 }
