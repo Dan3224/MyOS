@@ -1,14 +1,5 @@
 #include "console.h"
-
-static void outb(unsigned short port, unsigned char value) {
-    __asm__ volatile ("outb %0, %1" : : "a"(value), "Nd"(port));
-}
-
-static unsigned char inb(unsigned short port) {
-    unsigned char value;
-    __asm__ volatile ("inb %1, %0" : "=a"(value) : "Nd"(port));
-    return value;
-}
+#include "io.h"
 
 static void serial_init(void) {
     outb(0x3F8 + 1, 0x00);
