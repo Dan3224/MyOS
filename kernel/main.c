@@ -1,3 +1,5 @@
+#include "console.h"
+
 static void outb(unsigned short port, unsigned char value) {
     __asm__ volatile ("outb %0, %1" : : "a"(value), "Nd"(port));
 }
@@ -26,6 +28,11 @@ static void serial_write(const char *text) {
 }
 
 void kmain(void) {
+    const char *message = "MyOS 0.1: booted successfully.\n";
+
     serial_init();
-    serial_write("\nMyOS 0.1: booted successfully.\n");
+    console_init();
+    console_write(message);
+    serial_write("\n");
+    serial_write(message);
 }
