@@ -25,6 +25,15 @@ void console_write_char(char character) {
     }
 }
 
+void console_backspace(void) {
+    if (cursor == 0) {
+        return;
+    }
+
+    cursor--;
+    vga_buffer[cursor] = ((unsigned short)VGA_COLOR << 8) | ' ';
+}
+
 void console_write(const char *text) {
     while (*text) {
         console_write_char(*text++);
