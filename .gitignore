@@ -1,0 +1,4 @@
+# Generated build artifacts
+/build/out/
+/build/iso/boot/myos.elf
+/build/myos-*.iso
