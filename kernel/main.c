@@ -1,4 +1,5 @@
 #include "console.h"
+#include "interrupts.h"
 #include "io.h"
 #include "keyboard.h"
 #include "power.h"
@@ -48,9 +49,28 @@ static void prompt(void) {
     console_write("MyOS> ");
 }
 
+static void write_number(unsigned long value) {
+    char digits[11];
+    unsigned int length = 0;
+
+    if (value == 0) {
+        console_write_char('0');
+        return;
+    }
+
+    while (value > 0) {
+        digits[length++] = '0' + (value % 10);
+        value /= 10;
+    }
+
+    while (length > 0) {
+        console_write_char(digits[--length]);
+    }
+}
+
 static void run_command(void) {
     if (equals(command, "help")) {
-        console_write("Commands: help, about, clear, echo <text>, reboot\n");
+        console_write("Commands: help, about, clear, echo <text>, uptime, reboot\n");
     } else if (equals(command, "about")) {
         console_write("MyOS 0.1 - a small open source OS prototype.\n");
     } else if (equals(command, "clear")) {
@@ -58,6 +78,10 @@ static void run_command(void) {
     } else if (starts_with(command, "echo ")) {
         console_write(command + 5);
         console_write("\n");
+    } else if (equals(command, "uptime")) {
+        console_write("Uptime: ");
+        write_number(timer_ticks() / 100);
+        console_write(" seconds\n");
     } else if (equals(command, "reboot")) {
         console_write("Rebooting MyOS...\n");
         system_reboot();
@@ -69,6 +93,7 @@ static void run_command(void) {
 void kmain(void) {
     serial_init();
     console_init();
+    interrupts_init();
 
     console_write("MyOS 0.1: booted successfully.\n");
     console_write("Type help for commands.\n");
