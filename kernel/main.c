@@ -4,11 +4,19 @@
 #include "io.h"
 #include "keyboard.h"
 #include "power.h"
+#include "ui.h"
 
 #define COMMAND_MAX 160
 
 static char command[COMMAND_MAX];
 static unsigned int command_length = 0;
+
+enum screen_mode {
+    SCREEN_HOME,
+    SCREEN_FILES,
+    SCREEN_SYSTEM,
+    SCREEN_TERMINAL
+};
 
 static void serial_init(void) {
     outb(0x3F8 + 1, 0x00);
@@ -73,13 +81,13 @@ static void write_number(unsigned long value) {
     }
 }
 
-static void run_command(void) {
+static int run_command(void) {
     if (equals(command, "help")) {
-        console_write("Commands: help, about, clear, echo, ls, cat, write, sysinfo, uptime, reboot\n");
+        console_write("Commands: help, about, clear, echo, ls, cat, write, sysinfo, uptime, reboot, home\n");
     } else if (equals(command, "about")) {
-        console_write("MyOS 0.1 - a small open source OS prototype.\n");
+        console_write("MyOS 0.5 - a small open source OS prototype with a visual shell.\n");
     } else if (equals(command, "clear")) {
-        console_init();
+        ui_show_terminal();
     } else if (starts_with(command, "echo ")) {
         console_write(command + 5);
         console_write("\n");
@@ -115,6 +123,9 @@ static void run_command(void) {
         console_write(" seconds\nFiles: ");
         write_number(filesystem_count());
         console_write("\n");
+    } else if (equals(command, "home")) {
+        ui_show_home();
+        return 1;
     } else if (equals(command, "uptime")) {
         console_write("Uptime: ");
         write_number(timer_ticks() / 100);
@@ -125,22 +136,45 @@ static void run_command(void) {
     } else if (command_length) {
         console_write("Unknown command. Type help.\n");
     }
+
+    return 0;
 }
 
 void kmain(void) {
+    enum screen_mode mode = SCREEN_HOME;
+
     serial_init();
     console_init();
     filesystem_init();
     interrupts_init();
 
-    console_write("MyOS 0.4: booted successfully.\n");
-    console_write("Type help for commands.\n");
-    prompt();
+    ui_show_home();
 
     while (1) {
         char character = keyboard_read_char();
 
         if (!character) {
+            continue;
+        }
+
+        if (mode != SCREEN_TERMINAL) {
+            if (character == 'h') {
+                mode = SCREEN_HOME;
+                ui_show_home();
+            } else if (character == 'f') {
+                mode = SCREEN_FILES;
+                ui_show_files();
+            } else if (character == 's') {
+                mode = SCREEN_SYSTEM;
+                ui_show_system();
+            } else if (character == 't') {
+                mode = SCREEN_TERMINAL;
+                command_length = 0;
+                ui_show_terminal();
+                prompt();
+            } else if (character == 'q') {
+                system_reboot();
+            }
             continue;
         }
 
@@ -157,7 +191,11 @@ void kmain(void) {
             serial_write_char(character);
 
             command[command_length] = 0;
-            run_command();
+            if (run_command()) {
+                command_length = 0;
+                mode = SCREEN_HOME;
+                continue;
+            }
             command_length = 0;
             prompt();
         } else if (command_length < COMMAND_MAX - 1) {

@@ -1,7 +1,7 @@
 BUILD_DIR := build/out
 ISO_DIR := build/iso
 KERNEL := $(BUILD_DIR)/myos.elf
-ISO := build/myos-0.1.iso
+ISO := build/myos-0.5.iso
 CFLAGS := -m32 -ffreestanding -fno-pie -fno-stack-protector -Wall -Wextra
 LDFLAGS := -m elf_i386 -T kernel/linker.ld
 .PHONY: all run check clean
@@ -22,10 +22,12 @@ $(BUILD_DIR)/interrupts_asm.o: kernel/interrupts.S | $(BUILD_DIR)
 	gcc $(CFLAGS) -c $< -o $@
 $(BUILD_DIR)/power.o: kernel/power.c kernel/power.h kernel/io.h | $(BUILD_DIR)
 	gcc $(CFLAGS) -c $< -o $@
-$(BUILD_DIR)/main.o: kernel/main.c kernel/console.h kernel/io.h | $(BUILD_DIR)
+$(BUILD_DIR)/ui.o: kernel/ui.c kernel/ui.h kernel/console.h kernel/filesystem.h kernel/interrupts.h | $(BUILD_DIR)
 	gcc $(CFLAGS) -c $< -o $@
-$(KERNEL): $(BUILD_DIR)/boot.o $(BUILD_DIR)/console.o $(BUILD_DIR)/filesystem.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/interrupts.o $(BUILD_DIR)/interrupts_asm.o $(BUILD_DIR)/power.o $(BUILD_DIR)/main.o kernel/linker.ld
-	ld $(LDFLAGS) -o $@ $(BUILD_DIR)/boot.o $(BUILD_DIR)/console.o $(BUILD_DIR)/filesystem.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/interrupts.o $(BUILD_DIR)/interrupts_asm.o $(BUILD_DIR)/power.o $(BUILD_DIR)/main.o
+$(BUILD_DIR)/main.o: kernel/main.c kernel/console.h kernel/filesystem.h kernel/interrupts.h kernel/io.h kernel/keyboard.h kernel/power.h kernel/ui.h | $(BUILD_DIR)
+	gcc $(CFLAGS) -c $< -o $@
+$(KERNEL): $(BUILD_DIR)/boot.o $(BUILD_DIR)/console.o $(BUILD_DIR)/filesystem.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/interrupts.o $(BUILD_DIR)/interrupts_asm.o $(BUILD_DIR)/power.o $(BUILD_DIR)/ui.o $(BUILD_DIR)/main.o kernel/linker.ld
+	ld $(LDFLAGS) -o $@ $(BUILD_DIR)/boot.o $(BUILD_DIR)/console.o $(BUILD_DIR)/filesystem.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/interrupts.o $(BUILD_DIR)/interrupts_asm.o $(BUILD_DIR)/power.o $(BUILD_DIR)/ui.o $(BUILD_DIR)/main.o
 $(ISO): $(KERNEL) build/iso/boot/grub/grub.cfg
 	cp $(KERNEL) $(ISO_DIR)/boot/myos.elf
 	grub-mkrescue -o $@ $(ISO_DIR)
