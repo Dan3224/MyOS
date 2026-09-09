@@ -1,10 +1,11 @@
 #include "console.h"
+#include "filesystem.h"
 #include "interrupts.h"
 #include "io.h"
 #include "keyboard.h"
 #include "power.h"
 
-#define COMMAND_MAX 32
+#define COMMAND_MAX 160
 
 static char command[COMMAND_MAX];
 static unsigned int command_length = 0;
@@ -49,6 +50,10 @@ static void prompt(void) {
     console_write("MyOS> ");
 }
 
+static void write_filesystem_error(void) {
+    console_write("Filesystem: invalid name, file missing, or storage full.\n");
+}
+
 static void write_number(unsigned long value) {
     char digits[11];
     unsigned int length = 0;
@@ -70,13 +75,45 @@ static void write_number(unsigned long value) {
 
 static void run_command(void) {
     if (equals(command, "help")) {
-        console_write("Commands: help, about, clear, echo <text>, uptime, reboot\n");
+        console_write("Commands: help, about, clear, echo, ls, cat, write, sysinfo, uptime, reboot\n");
     } else if (equals(command, "about")) {
         console_write("MyOS 0.1 - a small open source OS prototype.\n");
     } else if (equals(command, "clear")) {
         console_init();
     } else if (starts_with(command, "echo ")) {
         console_write(command + 5);
+        console_write("\n");
+    } else if (equals(command, "ls")) {
+        filesystem_list();
+    } else if (starts_with(command, "cat ")) {
+        if (!filesystem_read(command + 4)) {
+            write_filesystem_error();
+        }
+    } else if (starts_with(command, "write ")) {
+        char *name = command + 6;
+        char *contents = name;
+
+        while (*contents && *contents != ' ') {
+            contents++;
+        }
+
+        if (*contents == 0) {
+            console_write("Usage: write <name> <text>\n");
+        } else {
+            *contents++ = 0;
+            while (*contents == ' ') {
+                contents++;
+            }
+
+            if (!filesystem_write(name, contents)) {
+                write_filesystem_error();
+            }
+        }
+    } else if (equals(command, "sysinfo")) {
+        console_write("MyOS 0.4 Core System\nUptime: ");
+        write_number(timer_ticks() / 100);
+        console_write(" seconds\nFiles: ");
+        write_number(filesystem_count());
         console_write("\n");
     } else if (equals(command, "uptime")) {
         console_write("Uptime: ");
@@ -93,9 +130,10 @@ static void run_command(void) {
 void kmain(void) {
     serial_init();
     console_init();
+    filesystem_init();
     interrupts_init();
 
-    console_write("MyOS 0.1: booted successfully.\n");
+    console_write("MyOS 0.4: booted successfully.\n");
     console_write("Type help for commands.\n");
     prompt();
 
