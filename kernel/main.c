@@ -33,17 +33,30 @@ static int equals(const char *left, const char *right) {
     return *left == *right;
 }
 
+static int starts_with(const char *text, const char *prefix) {
+    while (*prefix) {
+        if (*text++ != *prefix++) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
 static void prompt(void) {
     console_write("MyOS> ");
 }
 
 static void run_command(void) {
     if (equals(command, "help")) {
-        console_write("Commands: help, about, clear\n");
+        console_write("Commands: help, about, clear, echo <text>\n");
     } else if (equals(command, "about")) {
         console_write("MyOS 0.1 - a small open source OS prototype.\n");
     } else if (equals(command, "clear")) {
         console_init();
+    } else if (starts_with(command, "echo ")) {
+        console_write(command + 5);
+        console_write("\n");
     } else if (command_length) {
         console_write("Unknown command. Type help.\n");
     }
@@ -86,4 +99,4 @@ void kmain(void) {
             serial_write_char(character);
         }
     }
-} 
+}
