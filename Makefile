@@ -14,10 +14,12 @@ $(BUILD_DIR)/console.o: kernel/console.c kernel/console.h | $(BUILD_DIR)
 	gcc $(CFLAGS) -c $< -o $@
 $(BUILD_DIR)/keyboard.o: kernel/keyboard.c kernel/keyboard.h kernel/io.h | $(BUILD_DIR)
 	gcc $(CFLAGS) -c $< -o $@
+$(BUILD_DIR)/power.o: kernel/power.c kernel/power.h kernel/io.h | $(BUILD_DIR)
+	gcc $(CFLAGS) -c $< -o $@
 $(BUILD_DIR)/main.o: kernel/main.c kernel/console.h kernel/io.h | $(BUILD_DIR)
 	gcc $(CFLAGS) -c $< -o $@
-$(KERNEL): $(BUILD_DIR)/boot.o $(BUILD_DIR)/console.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/main.o kernel/linker.ld
-	ld $(LDFLAGS) -o $@ $(BUILD_DIR)/boot.o $(BUILD_DIR)/console.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/main.o
+$(KERNEL): $(BUILD_DIR)/boot.o $(BUILD_DIR)/console.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/power.o $(BUILD_DIR)/main.o kernel/linker.ld
+	ld $(LDFLAGS) -o $@ $(BUILD_DIR)/boot.o $(BUILD_DIR)/console.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/power.o $(BUILD_DIR)/main.o
 $(ISO): $(KERNEL) build/iso/boot/grub/grub.cfg
 	cp $(KERNEL) $(ISO_DIR)/boot/myos.elf
 	grub-mkrescue -o $@ $(ISO_DIR)

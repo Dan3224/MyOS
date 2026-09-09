@@ -1,6 +1,7 @@
 #include "console.h"
 #include "io.h"
 #include "keyboard.h"
+#include "power.h"
 
 #define COMMAND_MAX 32
 
@@ -49,7 +50,7 @@ static void prompt(void) {
 
 static void run_command(void) {
     if (equals(command, "help")) {
-        console_write("Commands: help, about, clear, echo <text>\n");
+        console_write("Commands: help, about, clear, echo <text>, reboot\n");
     } else if (equals(command, "about")) {
         console_write("MyOS 0.1 - a small open source OS prototype.\n");
     } else if (equals(command, "clear")) {
@@ -57,6 +58,9 @@ static void run_command(void) {
     } else if (starts_with(command, "echo ")) {
         console_write(command + 5);
         console_write("\n");
+    } else if (equals(command, "reboot")) {
+        console_write("Rebooting MyOS...\n");
+        system_reboot();
     } else if (command_length) {
         console_write("Unknown command. Type help.\n");
     }
