@@ -7,7 +7,7 @@ void graphics_show_home(void);
 void graphics_show_files(unsigned int file_count);
 void graphics_show_system(unsigned long uptime_seconds, unsigned int file_count);
 void graphics_show_apps(void);
-void graphics_show_notes(void);
+void graphics_show_notes(const char *text, int editing);
 void graphics_show_crash(unsigned int vector);
 void graphics_update_heartbeat(unsigned long ticks);
 

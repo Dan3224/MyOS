@@ -314,15 +314,33 @@ void graphics_show_apps(void) {
     draw_footer();
 }
 
-void graphics_show_notes(void) {
+void graphics_show_notes(const char *text, int editing) {
+    unsigned int x = 85;
+    unsigned int y = 350;
+
     fill_rect(0, 0, framebuffer_width, framebuffer_height, RGB(13, 20, 36));
     draw_top_bar("NOTES");
     draw_text(50, 130, "NOTES", RGB(240, 244, 255), 4);
     fill_rect(50, 230, 925, 390, RGB(27, 36, 58));
     outline_rect(50, 230, 925, 390, RGB(206, 130, 255));
-    draw_text(85, 280, "YOUR PORTABLE MYOS WORKSPACE", RGB(220, 205, 255), 3);
-    draw_text(85, 350, "EDITING AND PERSISTENT STORAGE", RGB(159, 174, 204), 2);
-    draw_text(85, 385, "ARRIVE IN THE NEXT 1.0 MODULE", RGB(159, 174, 204), 2);
+    if (editing) {
+        draw_text(85, 280, "EDIT MODE - ENTER SAVES", RGB(220, 205, 255), 3);
+    } else {
+        draw_text(85, 280, "PRESS E TO EDIT - H FOR HOME", RGB(220, 205, 255), 3);
+    }
+
+    while (*text && y < 575) {
+        if (x > 900) {
+            x = 85;
+            y += 32;
+        }
+        draw_char(x, y, *text++, RGB(240, 244, 255), 3);
+        x += 18;
+    }
+
+    if (!text[0] && x == 85) {
+        draw_text(85, 350, "NO NOTE SAVED YET", RGB(159, 174, 204), 2);
+    }
     draw_footer();
 }
 

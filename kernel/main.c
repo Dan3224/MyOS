@@ -4,6 +4,7 @@
 #include "interrupts.h"
 #include "io.h"
 #include "keyboard.h"
+#include "notes.h"
 #include "power.h"
 #include "ui.h"
 
@@ -176,6 +177,7 @@ static void wait_ticks(unsigned long ticks_to_wait) {
 
 static void graphics_main_loop(void) {
     unsigned long last_heartbeat_tick = 0;
+    int notes_page = 0;
 
     graphics_show_boot_stage(0);
     wait_ticks(30);
@@ -197,16 +199,27 @@ static void graphics_main_loop(void) {
             last_heartbeat_tick = current_ticks;
         }
 
-        if (character == 'h') {
+        if (notes_page && notes_is_editing()) {
+            notes_handle_input(character);
+            graphics_show_notes(notes_text(), notes_is_editing());
+        } else if (notes_page && character == 'e') {
+            notes_start_edit();
+            graphics_show_notes(notes_text(), notes_is_editing());
+        } else if (character == 'h') {
+            notes_page = 0;
             graphics_show_home();
         } else if (character == 'f') {
+            notes_page = 0;
             graphics_show_files(filesystem_count());
         } else if (character == 's') {
+            notes_page = 0;
             graphics_show_system(current_ticks / 100, filesystem_count());
         } else if (character == 'a') {
+            notes_page = 0;
             graphics_show_apps();
         } else if (character == 'n') {
-            graphics_show_notes();
+            notes_page = 1;
+            graphics_show_notes(notes_text(), notes_is_editing());
         } else if (character == 'q') {
             system_reboot();
         }
@@ -223,6 +236,7 @@ void kmain(unsigned int multiboot_magic, unsigned int multiboot_info) {
     serial_write("MyOS: kernel entered.\n");
     console_init();
     filesystem_init();
+    notes_init();
     interrupts_init();
 
     graphics_result = graphics_init(multiboot_magic, multiboot_info);

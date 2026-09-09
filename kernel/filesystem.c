@@ -86,6 +86,16 @@ int filesystem_read(const char *name) {
     return 1;
 }
 
+const char *filesystem_contents(const char *name) {
+    struct virtual_file *file = find_file(name);
+
+    if (!file) {
+        return 0;
+    }
+
+    return file->contents;
+}
+
 int filesystem_write(const char *name, const char *contents) {
     struct virtual_file *file = find_file(name);
 

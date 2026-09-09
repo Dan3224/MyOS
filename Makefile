@@ -19,6 +19,8 @@ $(BUILD_DIR)/graphics.o: kernel/graphics.c kernel/graphics.h | $(BUILD_DIR)
 	gcc $(CFLAGS) -c $< -o $@
 $(BUILD_DIR)/keyboard.o: kernel/keyboard.c kernel/keyboard.h kernel/io.h | $(BUILD_DIR)
 	gcc $(CFLAGS) -c $< -o $@
+$(BUILD_DIR)/notes.o: kernel/notes.c kernel/notes.h kernel/filesystem.h | $(BUILD_DIR)
+	gcc $(CFLAGS) -c $< -o $@
 $(BUILD_DIR)/interrupts.o: kernel/interrupts.c kernel/interrupts.h kernel/io.h | $(BUILD_DIR)
 	gcc $(CFLAGS) -c $< -o $@
 $(BUILD_DIR)/interrupts_asm.o: kernel/interrupts.S | $(BUILD_DIR)
@@ -27,10 +29,10 @@ $(BUILD_DIR)/power.o: kernel/power.c kernel/power.h kernel/io.h | $(BUILD_DIR)
 	gcc $(CFLAGS) -c $< -o $@
 $(BUILD_DIR)/ui.o: kernel/ui.c kernel/ui.h kernel/console.h kernel/filesystem.h kernel/interrupts.h | $(BUILD_DIR)
 	gcc $(CFLAGS) -c $< -o $@
-$(BUILD_DIR)/main.o: kernel/main.c kernel/console.h kernel/filesystem.h kernel/graphics.h kernel/interrupts.h kernel/io.h kernel/keyboard.h kernel/power.h kernel/ui.h | $(BUILD_DIR)
+$(BUILD_DIR)/main.o: kernel/main.c kernel/console.h kernel/filesystem.h kernel/graphics.h kernel/interrupts.h kernel/io.h kernel/keyboard.h kernel/notes.h kernel/power.h kernel/ui.h | $(BUILD_DIR)
 	gcc $(CFLAGS) -c $< -o $@
-$(KERNEL): $(BUILD_DIR)/boot.o $(BUILD_DIR)/console.o $(BUILD_DIR)/filesystem.o $(BUILD_DIR)/graphics.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/interrupts.o $(BUILD_DIR)/interrupts_asm.o $(BUILD_DIR)/power.o $(BUILD_DIR)/ui.o $(BUILD_DIR)/main.o kernel/linker.ld
-	ld $(LDFLAGS) -o $@ $(BUILD_DIR)/boot.o $(BUILD_DIR)/console.o $(BUILD_DIR)/filesystem.o $(BUILD_DIR)/graphics.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/interrupts.o $(BUILD_DIR)/interrupts_asm.o $(BUILD_DIR)/power.o $(BUILD_DIR)/ui.o $(BUILD_DIR)/main.o
+$(KERNEL): $(BUILD_DIR)/boot.o $(BUILD_DIR)/console.o $(BUILD_DIR)/filesystem.o $(BUILD_DIR)/graphics.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/notes.o $(BUILD_DIR)/interrupts.o $(BUILD_DIR)/interrupts_asm.o $(BUILD_DIR)/power.o $(BUILD_DIR)/ui.o $(BUILD_DIR)/main.o kernel/linker.ld
+	ld $(LDFLAGS) -o $@ $(BUILD_DIR)/boot.o $(BUILD_DIR)/console.o $(BUILD_DIR)/filesystem.o $(BUILD_DIR)/graphics.o $(BUILD_DIR)/keyboard.o $(BUILD_DIR)/notes.o $(BUILD_DIR)/interrupts.o $(BUILD_DIR)/interrupts_asm.o $(BUILD_DIR)/power.o $(BUILD_DIR)/ui.o $(BUILD_DIR)/main.o
 $(ISO): $(KERNEL) build/iso/boot/grub/grub.cfg
 	cp $(KERNEL) $(ISO_DIR)/boot/myos.elf
 	rm -f $(TEMP_ISO)

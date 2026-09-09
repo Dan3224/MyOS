@@ -19,9 +19,10 @@ VGA text shell rather than drawing to an unknown address.
 - Files
 - System status
 - App launcher
-- Notes placeholder
+- Notes editor backed by the virtual filesystem
 
-Navigation uses H, F, S, A and N. Q requests a reboot.
+Navigation uses H, F, S, A and N. Q requests a reboot. On the Notes screen,
+press E to edit, Backspace to erase and Enter to save the note as "notes".
 
 ## Reliability
 
@@ -32,6 +33,6 @@ instead of failing silently.
 
 ## Current boundary
 
-The desktop and application pages are real framebuffer output. Persistent
-notes, mouse support and a complete window manager remain future MyOS 1.0
-modules.
+The desktop and application pages are real framebuffer output. Notes remain
+in the current virtual filesystem and are reset after a reboot. Mouse support,
+disk persistence and a complete window manager remain future MyOS 1.0 modules.

@@ -5,6 +5,7 @@ void filesystem_init(void);
 void filesystem_list(void);
 int filesystem_read(const char *name);
 int filesystem_write(const char *name, const char *contents);
+const char *filesystem_contents(const char *name);
 unsigned int filesystem_count(void);
 
 #endif
