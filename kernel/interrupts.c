@@ -17,6 +17,7 @@ struct idt_pointer {
 } __attribute__((packed));
 
 extern void timer_interrupt_stub(void);
+extern void keyboard_interrupt_stub(void);
 
 static struct idt_entry idt[256];
 volatile unsigned long ticks = 0;
@@ -47,7 +48,7 @@ static void pic_init(void) {
     outb(0xA1, 0x01);
     io_wait();
 
-    outb(0x21, 0xFE);
+    outb(0x21, 0xFC);
     io_wait();
     outb(0xA1, 0xFF);
     io_wait();
@@ -75,6 +76,7 @@ void interrupts_init(void) {
 
     __asm__ volatile ("mov %%cs, %0" : "=r"(code_selector));
     set_gate(32, (unsigned int)timer_interrupt_stub, code_selector);
+    set_gate(33, (unsigned int)keyboard_interrupt_stub, code_selector);
     pointer.size = sizeof(idt) - 1;
     pointer.address = (unsigned int)idt;
 

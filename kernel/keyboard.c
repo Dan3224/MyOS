@@ -1,6 +1,12 @@
 #include "io.h"
 #include "keyboard.h"
 
+#define KEYBOARD_BUFFER_SIZE 64
+
+static volatile char keyboard_buffer[KEYBOARD_BUFFER_SIZE];
+static volatile unsigned char buffer_head = 0;
+static volatile unsigned char buffer_tail = 0;
+
 static char decode_scancode(unsigned char code) {
     switch (code) {
         case 0x02: return '1'; case 0x03: return '2'; case 0x04: return '3';
@@ -27,15 +33,36 @@ static char decode_scancode(unsigned char code) {
     }
 }
 
-char keyboard_read_char(void) {
-    unsigned char code;
+void keyboard_interrupt_handler(void) {
+    unsigned char code = inb(0x60);
+    char character;
 
-    while ((inb(0x64) & 0x01) == 0) { }
-
-    code = inb(0x60);
     if (code & 0x80) {
-        return 0;
+        outb(0x20, 0x20);
+        return;
     }
 
-    return decode_scancode(code);
+    character = decode_scancode(code);
+    if (character) {
+        unsigned char next_head = (buffer_head + 1) % KEYBOARD_BUFFER_SIZE;
+
+        if (next_head != buffer_tail) {
+            keyboard_buffer[buffer_head] = character;
+            buffer_head = next_head;
+        }
+    }
+
+    outb(0x20, 0x20);
+}
+
+char keyboard_read_char(void) {
+    char character;
+
+    while (buffer_head == buffer_tail) {
+        __asm__ volatile ("hlt");
+    }
+
+    character = keyboard_buffer[buffer_tail];
+    buffer_tail = (buffer_tail + 1) % KEYBOARD_BUFFER_SIZE;
+    return character;
 }
