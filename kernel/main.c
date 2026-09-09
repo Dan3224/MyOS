@@ -1,5 +1,6 @@
 #include "console.h"
 #include "filesystem.h"
+#include "graphics.h"
 #include "interrupts.h"
 #include "io.h"
 #include "keyboard.h"
@@ -32,6 +33,31 @@ static void serial_write_char(char character) {
     while ((inb(0x3F8 + 5) & 0x20) == 0) { }
 
     outb(0x3F8, (unsigned char)character);
+}
+
+static void serial_write(const char *text) {
+    while (*text) {
+        serial_write_char(*text++);
+    }
+}
+
+static void serial_write_number(unsigned int value) {
+    char digits[10];
+    unsigned int length = 0;
+
+    if (value == 0) {
+        serial_write_char('0');
+        return;
+    }
+
+    while (value > 0) {
+        digits[length++] = '0' + value % 10;
+        value /= 10;
+    }
+
+    while (length > 0) {
+        serial_write_char(digits[--length]);
+    }
 }
 
 static int equals(const char *left, const char *right) {
@@ -140,14 +166,74 @@ static int run_command(void) {
     return 0;
 }
 
-void kmain(void) {
+static void wait_ticks(unsigned long ticks_to_wait) {
+    unsigned long finish = timer_ticks() + ticks_to_wait;
+
+    while (timer_ticks() < finish) {
+        __asm__ volatile ("hlt");
+    }
+}
+
+static void graphics_main_loop(void) {
+    unsigned long last_heartbeat_tick = 0;
+
+    graphics_show_boot_stage(0);
+    wait_ticks(30);
+    graphics_show_boot_stage(1);
+    wait_ticks(30);
+    graphics_show_boot_stage(2);
+    wait_ticks(30);
+    graphics_show_boot_stage(3);
+    wait_ticks(80);
+    graphics_show_home();
+    serial_write("MyOS 1.0: graphical desktop ready.\n");
+
+    while (1) {
+        char character = keyboard_poll_char();
+        unsigned long current_ticks = timer_ticks();
+
+        if (current_ticks - last_heartbeat_tick >= 25) {
+            graphics_update_heartbeat(current_ticks);
+            last_heartbeat_tick = current_ticks;
+        }
+
+        if (character == 'h') {
+            graphics_show_home();
+        } else if (character == 'f') {
+            graphics_show_files(filesystem_count());
+        } else if (character == 's') {
+            graphics_show_system(current_ticks / 100, filesystem_count());
+        } else if (character == 'a') {
+            graphics_show_apps();
+        } else if (character == 'n') {
+            graphics_show_notes();
+        } else if (character == 'q') {
+            system_reboot();
+        }
+
+        __asm__ volatile ("hlt");
+    }
+}
+
+void kmain(unsigned int multiboot_magic, unsigned int multiboot_info) {
     enum screen_mode mode = SCREEN_HOME;
+    int graphics_result;
 
     serial_init();
+    serial_write("MyOS: kernel entered.\n");
     console_init();
     filesystem_init();
     interrupts_init();
 
+    graphics_result = graphics_init(multiboot_magic, multiboot_info);
+    if (graphics_result > 0) {
+        serial_write("MyOS 1.0: framebuffer active.\n");
+        graphics_main_loop();
+    }
+
+    serial_write("MyOS: framebuffer unavailable, reason ");
+    serial_write_number((unsigned int)(-graphics_result));
+    serial_write(". Using VGA fallback.\n");
     ui_show_home();
 
     while (1) {

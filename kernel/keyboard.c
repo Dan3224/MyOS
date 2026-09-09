@@ -66,3 +66,15 @@ char keyboard_read_char(void) {
     buffer_tail = (buffer_tail + 1) % KEYBOARD_BUFFER_SIZE;
     return character;
 }
+
+char keyboard_poll_char(void) {
+    char character;
+
+    if (buffer_head == buffer_tail) {
+        return 0;
+    }
+
+    character = keyboard_buffer[buffer_tail];
+    buffer_tail = (buffer_tail + 1) % KEYBOARD_BUFFER_SIZE;
+    return character;
+}

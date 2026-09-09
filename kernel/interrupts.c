@@ -18,6 +18,10 @@ struct idt_pointer {
 
 extern void timer_interrupt_stub(void);
 extern void keyboard_interrupt_stub(void);
+extern void divide_error_stub(void);
+extern void invalid_opcode_stub(void);
+extern void general_protection_stub(void);
+extern void page_fault_stub(void);
 
 static struct idt_entry idt[256];
 volatile unsigned long ticks = 0;
@@ -75,6 +79,10 @@ void interrupts_init(void) {
     }
 
     __asm__ volatile ("mov %%cs, %0" : "=r"(code_selector));
+    set_gate(0, (unsigned int)divide_error_stub, code_selector);
+    set_gate(6, (unsigned int)invalid_opcode_stub, code_selector);
+    set_gate(13, (unsigned int)general_protection_stub, code_selector);
+    set_gate(14, (unsigned int)page_fault_stub, code_selector);
     set_gate(32, (unsigned int)timer_interrupt_stub, code_selector);
     set_gate(33, (unsigned int)keyboard_interrupt_stub, code_selector);
     pointer.size = sizeof(idt) - 1;
