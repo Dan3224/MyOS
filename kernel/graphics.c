@@ -195,6 +195,31 @@ static void draw_footer(void) {
               RGB(180, 195, 220), 2);
 }
 
+static void draw_desktop(const char *page) {
+    fill_rect(0, 0, framebuffer_width, framebuffer_height, RGB(13, 20, 36));
+    draw_top_bar(page);
+    draw_text(50, 125, "WELCOME TO MYOS", RGB(240, 244, 255), 4);
+    draw_text(52, 180, "A SMALL SYSTEM WITH A BIG DIRECTION", RGB(159, 174, 204), 2);
+    draw_card(50, 255, 430, 150, RGB(103, 183, 255), "F FILES", "VIRTUAL STORAGE");
+    draw_card(545, 255, 430, 150, RGB(100, 240, 170), "S SYSTEM", "HEALTH AND STATUS");
+    draw_card(50, 450, 430, 150, RGB(255, 190, 90), "A APPS", "OPEN APP LAUNCHER");
+    draw_card(545, 450, 430, 150, RGB(206, 130, 255), "N NOTES", "WRITE IDEAS LATER");
+    draw_footer();
+}
+
+static void draw_window(unsigned int x, unsigned int y, unsigned int width,
+                        unsigned int height, unsigned int accent,
+                        const char *title) {
+    fill_rect(x + 10, y + 10, width, height, RGB(7, 11, 21));
+    fill_rect(x, y, width, height, RGB(24, 32, 52));
+    outline_rect(x, y, width, height, accent);
+    fill_rect(x, y, width, 54, RGB(18, 25, 43));
+    fill_rect(x, y, 10, 54, accent);
+    fill_rect(x + width - 24, y + 18, 10, 10, RGB(255, 125, 145));
+    draw_text(x + 30, y + 18, title, RGB(240, 244, 255), 3);
+    draw_text(x + width - 145, y + 20, "H CLOSE", RGB(180, 195, 220), 2);
+}
+
 int graphics_init(unsigned int multiboot_magic, unsigned int multiboot_info) {
     struct multiboot_info *info = (struct multiboot_info *)multiboot_info;
 
@@ -270,78 +295,67 @@ void graphics_show_boot_stage(unsigned int stage) {
 }
 
 void graphics_show_home(void) {
-    fill_rect(0, 0, framebuffer_width, framebuffer_height, RGB(13, 20, 36));
-    draw_top_bar("HOME");
-    draw_text(50, 125, "WELCOME TO MYOS", RGB(240, 244, 255), 4);
-    draw_text(52, 180, "A SMALL SYSTEM WITH A BIG DIRECTION", RGB(159, 174, 204), 2);
-    draw_card(50, 255, 430, 150, RGB(103, 183, 255), "F FILES", "VIRTUAL STORAGE");
-    draw_card(545, 255, 430, 150, RGB(100, 240, 170), "S SYSTEM", "HEALTH AND STATUS");
-    draw_card(50, 450, 430, 150, RGB(255, 190, 90), "A APPS", "OPEN APP LAUNCHER");
-    draw_card(545, 450, 430, 150, RGB(206, 130, 255), "N NOTES", "WRITE IDEAS LATER");
-    draw_footer();
+    draw_desktop("HOME");
 }
 
 void graphics_show_files(unsigned int file_count) {
-    fill_rect(0, 0, framebuffer_width, framebuffer_height, RGB(13, 20, 36));
-    draw_top_bar("FILES");
-    draw_text(50, 130, "VIRTUAL FILES", RGB(240, 244, 255), 4);
-    draw_card(50, 225, 925, 105, RGB(103, 183, 255), "README", "WELCOME TO MYOS");
-    draw_card(50, 360, 925, 105, RGB(100, 240, 170), "VERSION", "MYOS 1.0 GRAPHICAL CORE");
-    draw_card(50, 495, 925, 105, RGB(255, 190, 90), "FILES", file_count > 2 ? "USER FILES PRESENT" : "READY FOR USER FILES");
-    draw_footer();
+    draw_desktop("DESKTOP");
+    draw_window(110, 130, 804, 520, RGB(103, 183, 255), "FILES");
+    draw_text(150, 220, "VIRTUAL STORAGE", RGB(159, 174, 204), 2);
+    draw_card(150, 255, 720, 100, RGB(103, 183, 255), "README", "WELCOME TO MYOS");
+    draw_card(150, 370, 720, 100, RGB(100, 240, 170), "VERSION", "MYOS 1.0 GRAPHICAL CORE");
+    draw_card(150, 485, 720, 100, RGB(255, 190, 90), "FILES",
+              file_count > 2 ? "USER FILES PRESENT" : "READY FOR USER FILES");
 }
 
 void graphics_show_system(unsigned long uptime_seconds, unsigned int file_count) {
     (void)uptime_seconds;
     (void)file_count;
-    fill_rect(0, 0, framebuffer_width, framebuffer_height, RGB(13, 20, 36));
-    draw_top_bar("SYSTEM");
-    draw_text(50, 130, "SYSTEM STATUS", RGB(240, 244, 255), 4);
-    draw_card(50, 235, 925, 105, RGB(100, 240, 170), "KERNEL", "RUNNING WITH TIMER INTERRUPTS");
-    draw_card(50, 370, 925, 105, RGB(103, 183, 255), "DISPLAY", "32 BIT FRAMEBUFFER ACTIVE");
-    draw_card(50, 505, 925, 105, RGB(206, 130, 255), "HEALTH", "HEARTBEAT LIGHT IN TOP BAR");
-    draw_footer();
+    draw_desktop("DESKTOP");
+    draw_window(110, 130, 804, 520, RGB(100, 240, 170), "SYSTEM");
+    draw_text(150, 220, "SYSTEM STATUS", RGB(159, 174, 204), 2);
+    draw_card(150, 255, 720, 100, RGB(100, 240, 170), "KERNEL", "RUNNING WITH TIMER INTERRUPTS");
+    draw_card(150, 370, 720, 100, RGB(103, 183, 255), "DISPLAY", "32 BIT FRAMEBUFFER ACTIVE");
+    draw_card(150, 485, 720, 100, RGB(206, 130, 255), "HEALTH", "HEARTBEAT LIGHT IN TOP BAR");
 }
 
 void graphics_show_apps(void) {
-    fill_rect(0, 0, framebuffer_width, framebuffer_height, RGB(13, 20, 36));
-    draw_top_bar("APP LAUNCHER");
-    draw_text(50, 130, "APPLICATIONS", RGB(240, 244, 255), 4);
-    draw_card(50, 245, 430, 160, RGB(103, 183, 255), "FILES", "BROWSE STORAGE");
-    draw_card(545, 245, 430, 160, RGB(100, 240, 170), "SYSTEM", "CHECK HEALTH");
-    draw_card(50, 455, 430, 160, RGB(206, 130, 255), "NOTES", "DRAFT SPACE");
-    draw_card(545, 455, 430, 160, RGB(255, 190, 90), "TOOLS", "COMING NEXT");
-    draw_footer();
+    draw_desktop("DESKTOP");
+    draw_window(110, 130, 804, 520, RGB(255, 190, 90), "APP LAUNCHER");
+    draw_text(150, 220, "CHOOSE A SPACE TO EXPLORE", RGB(159, 174, 204), 2);
+    draw_card(150, 280, 325, 115, RGB(103, 183, 255), "F FILES", "BROWSE STORAGE");
+    draw_card(535, 280, 325, 115, RGB(100, 240, 170), "S SYSTEM", "CHECK HEALTH");
+    draw_card(150, 440, 325, 115, RGB(206, 130, 255), "N NOTES", "DRAFT SPACE");
+    draw_card(535, 440, 325, 115, RGB(255, 190, 90), "TOOLS", "COMING NEXT");
 }
 
 void graphics_show_notes(const char *text, int editing) {
-    unsigned int x = 85;
-    unsigned int y = 350;
+    unsigned int x = 155;
+    unsigned int y = 335;
 
-    fill_rect(0, 0, framebuffer_width, framebuffer_height, RGB(13, 20, 36));
-    draw_top_bar("NOTES");
-    draw_text(50, 130, "NOTES", RGB(240, 244, 255), 4);
-    fill_rect(50, 230, 925, 390, RGB(27, 36, 58));
-    outline_rect(50, 230, 925, 390, RGB(206, 130, 255));
+    draw_desktop("DESKTOP");
+    draw_window(110, 130, 804, 520, RGB(206, 130, 255), "NOTES");
     if (editing) {
-        draw_text(85, 280, "EDIT MODE - ENTER SAVES", RGB(220, 205, 255), 3);
+        draw_text(155, 235, "EDIT MODE - ENTER SAVES", RGB(220, 205, 255), 3);
     } else {
-        draw_text(85, 280, "PRESS E TO EDIT - H FOR HOME", RGB(220, 205, 255), 3);
+        draw_text(155, 235, "PRESS E TO EDIT - H CLOSES", RGB(220, 205, 255), 3);
     }
 
-    while (*text && y < 575) {
-        if (x > 900) {
-            x = 85;
+    fill_rect(150, 300, 724, 265, RGB(18, 25, 43));
+    outline_rect(150, 300, 724, 265, RGB(76, 63, 110));
+
+    while (*text && y < 525) {
+        if (x > 830) {
+            x = 155;
             y += 32;
         }
         draw_char(x, y, *text++, RGB(240, 244, 255), 3);
         x += 18;
     }
 
-    if (!text[0] && x == 85) {
-        draw_text(85, 350, "NO NOTE SAVED YET", RGB(159, 174, 204), 2);
+    if (!text[0] && x == 155) {
+        draw_text(155, 335, "NO NOTE SAVED YET", RGB(159, 174, 204), 2);
     }
-    draw_footer();
 }
 
 void graphics_show_crash(unsigned int vector) {
